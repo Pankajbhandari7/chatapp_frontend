@@ -399,11 +399,10 @@ const Chat = () => {
       socket.off("res_ice_candidate", handleIceCandidate);
       socket.off("call_ended", handleCallEnded);
     };
-<<<<<<< HEAD
    // eslint-disable-next-line react-hooks/exhaustive-deps
-=======
+
     //eslint-disable-next-line react-hooks/exhaustive-deps
->>>>>>> 5940e05 (updated features)
+
   }, [activeTab, user]);
 
   // LOGIN SCREEN

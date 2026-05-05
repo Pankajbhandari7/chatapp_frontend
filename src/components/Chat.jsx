@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import socket from "../socket";
 import axios from "axios";
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
 const Chat = () => {
   // Auth State
   const [user, setUser] = useState(null);
@@ -63,7 +65,7 @@ const Chat = () => {
     if (!phoneNumber || !password) return;
     try {
       if (isResetMode) {
-        await axios.post("http://localhost:5000/api/users/reset-password", { phoneNumber, name, newPassword: password });
+        await axios.post(`${BACKEND_URL}/api/users/reset-password`, { phoneNumber, name, newPassword: password });
         alert("Password updated. Please login now.");
         setIsResetMode(false);
         setIsRegisterMode(false);
@@ -72,11 +74,11 @@ const Chat = () => {
       }
 
       if (isRegisterMode) {
-         const res = await axios.post("http://localhost:5000/api/users/register", { phoneNumber, name, password });
+         const res = await axios.post(`${BACKEND_URL}/api/users/register`, { phoneNumber, name, password });
          setUser(res.data);
          fetchDashboardData(res.data.phoneNumber);
       } else {
-         const res = await axios.post("http://localhost:5000/api/users/login", { phoneNumber, password });
+         const res = await axios.post(`${BACKEND_URL}/api/users/login`, { phoneNumber, password });
          setUser(res.data);
          fetchDashboardData(res.data.phoneNumber);
       }
@@ -87,10 +89,10 @@ const Chat = () => {
 
   const fetchDashboardData = async (phone) => {
     try {
-      const usersRes = await axios.get("http://localhost:5000/api/users/all");
+      const usersRes = await axios.get(`${BACKEND_URL}/api/users/all`);
       setAllUsers(usersRes.data.filter(u => u.phoneNumber !== phone));
       
-      const roomsRes = await axios.get(`http://localhost:5000/api/rooms/${phone}`);
+      const roomsRes = await axios.get(`${BACKEND_URL}/api/rooms/${phone}`);
       setMyRooms(roomsRes.data);
 
       const roomIds = roomsRes.data.map(r => r._id);
@@ -109,7 +111,7 @@ const Chat = () => {
     setActiveTab({ type, id, name });
     if (type === "room") {
       try {
-        const roomRes = await axios.get(`http://localhost:5000/api/rooms/details/${id}`);
+        const roomRes = await axios.get(`${BACKEND_URL}/api/rooms/details/${id}`);
         setActiveRoomDetails(roomRes.data);
       } catch (error) {
         console.error("Error fetching room details", error);
@@ -122,10 +124,10 @@ const Chat = () => {
     try {
       let url = "";
       if (type === "user") {
-        url = `http://localhost:5000/api/messages/${user.phoneNumber}/${id}`;
-        await axios.post(`http://localhost:5000/api/messages/mark-read`, { senderId: id, receiverId: user.phoneNumber });
+        url = `${BACKEND_URL}/api/messages/${user.phoneNumber}/${id}`;
+        await axios.post(`${BACKEND_URL}/api/messages/mark-read`, { senderId: id, receiverId: user.phoneNumber });
       } else {
-        url = `http://localhost:5000/api/rooms/messages/${id}`;
+        url = `${BACKEND_URL}/api/rooms/messages/${id}`;
       }
       const res = await axios.get(url);
       setChat(res.data);
@@ -250,7 +252,7 @@ const Chat = () => {
     }
 
     try {
-      const res = await axios.get(`http://localhost:5000/api/users/by-phone/${encodeURIComponent(phone)}`);
+      const res = await axios.get(`${BACKEND_URL}/api/users/by-phone/${encodeURIComponent(phone)}`);
       const foundUser = res.data;
 
       if (foundUser.phoneNumber === user.phoneNumber) {
@@ -278,7 +280,7 @@ const Chat = () => {
     const groupName = prompt("Enter Group Name:");
     if (!groupName) return;
     try {
-      const res = await axios.post("http://localhost:5000/api/rooms/create", { name: groupName, members: [user.phoneNumber] });
+      const res = await axios.post(`${BACKEND_URL}/api/rooms/create`, { name: groupName, members: [user.phoneNumber] });
       setMyRooms([...myRooms, res.data]);
       socket.emit("join_room", res.data._id);
     } catch(err) {
@@ -606,7 +608,7 @@ const Chat = () => {
                      const ans = prompt("Enter the Phone Number of the user to invite:");
                      if (ans) {
                        try {
-                          const addRes = await axios.post("http://localhost:5000/api/rooms/add-member", { roomId: activeTab.id, phoneNumber: ans });
+                          const addRes = await axios.post(`${BACKEND_URL}/api/rooms/add-member`, { roomId: activeTab.id, phoneNumber: ans });
                           const updatedRoom = addRes.data?.room;
                           if (updatedRoom) {
                             setMyRooms((prev) => prev.map((room) => (room._id === updatedRoom._id ? updatedRoom : room)));
